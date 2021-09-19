@@ -1,0 +1,82 @@
+DEFINE OSC 20
+DEFINE ADC_BITS 8
+DEFINE ADC_CLOCK 3
+DEFINE ADC_SAMPLEUS 50
+CCP1CON = %00001100    '$0C Set PWM mode
+CCP2CON = %00001100
+T2CON = %00000101       '$05 Timer 2 on, Prescale 4
+PR2 = 62                'PWM at 19.841 kHz
+
+TRISA = %11111110
+TRISB = %00001111
+TRISC = $00 '%00000000      'PORT C as output
+TRISD = $00                                                                
+ 
+PORTB = $00
+PORTC = $00 '%00000000
+PORTD = $00
+CCPR1L = 45
+CCPR2L = 45
+
+Num VAR word
+Num1 VAR word
+A var word
+B var word 
+LED VAR PORTB.3
+IR1 VAR PORTB.0
+IR2 VAR PORTB.1
+M1F VAR PORTB.4
+M1B VAR PORTB.5
+M2F VAR PORTB.6
+M2B VAR PORTB.7
+Tr var PORTC.6 'Trig pin
+Ec var PORTC.7 
+Tr1 var PORTC.4 'Trig pin
+Ec1 var PORTC.5'
+
+LOW M1F
+LOW M1B
+LOW M2F
+LOW M2B
+pause 15
+
+MAINLOOP:
+
+pulsout tr,5
+pulsin ec,1,Num
+a = Num*2/58
+pulsout tr1,5
+pulsin ec1,1,Num1     'Measure high pulse from Echo pin and store in Num    
+b = Num1*2/58
+LOW LED
+                                                                 
+ 
+IF A < 25 or B < 25 THEN 
+LOW M1F
+LOW M2F
+HIGH LED
+PULSOUT PORTB.2,600
+PAUSEUS 1400
+
+ELSEIF IR1 = 0 && IR2 = 1 THEN
+LOW M2F
+PAUSE 7
+HIGH M1F
+       
+ELSEIF IR1 = 1 && IR2 = 0 THEN
+LOW M1F
+PAUSE 7
+HIGH M2F
+
+ELSEIF  IR1 = 1 && IR2 = 1 THEN  
+HIGH M1F
+HIGH M2F
+PAUSE 30  
+    
+ELSEIF  IR1 = 0 && IR2 = 0 THEN  
+HIGH M1F
+HIGH M2F
+PAUSE 30
+
+ENDIF
+GOTO MAINLOOP
